@@ -2,14 +2,9 @@
 package main
 
 import (
-	"fmt"
+	"top-coder/glc4/survey"
 )
 
 func main() {
-	fmt.Println("Hello World!")
-	go handleConnection()
-}
-
-func handleConnection() {
-
+	survey.SurveyServer()
 }
