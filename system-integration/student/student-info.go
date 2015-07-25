@@ -1,5 +1,9 @@
 package integrate
 
+import (
+	"strconv"
+)
+
 //StudentInfo is a struct that holds data about a student.
 type StudentInfo struct {
 	StudID           int    `json:"StudentID"`
@@ -16,5 +20,6 @@ type StudentInfo struct {
 }
 
 func (student StudentInfo) String() string {
-	return "Student ID: " + string(student.StudID) + " Name: " + student.Name
+	return "Student ID: " + strconv.Itoa(student.StudID) +
+		" Name: " + student.Name + "\n"
 }
