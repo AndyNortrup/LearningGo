@@ -10,50 +10,55 @@ import (
 
 const path string = "AddStudent"
 
-//StudentAdded will be used to send a response back to the user
-type StudentAdded struct {
-	CountAdded int `json:"countAdded"`
-	Error      int `json:"errors"`
-}
-
 //AddStudentService is an instance of http.Handler
 type AddStudentService struct{}
 
 //AddStudent processes a request to add a student to the student registration
 // system
 func (service AddStudentService) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	err := validRequest(request)
+	err := isValidRequest(request)
 	if err != nil {
-		sendResponse(0,
-			"Invalid request.  Requires POST, application/json data.",
-			writer)
+
+		response := StudentAdded{
+			CountAdded: 0,
+			Error:      "Invalid request.  Requires POST, application/json data."}
+		response.sendResponse(writer)
 		return
 	}
 
 	students, err := unmarshallRequest(request.Body)
 	if err != nil {
-		sendResponse(0,
-			"Unable to unmarshal JSON request",
-			writer)
+
+		response := StudentAdded{
+			CountAdded: 0,
+			Error:      "Unable to unmarshal JSON request"}
+		response.sendResponse(writer)
 		return
 	}
 
 	//Nominal: Validate business rules
 	for _, student := range students {
 		if !isValidStudent(student) {
-			sendResponse(0, "Invaid Submitted Data", writer)
+			response := StudentAdded{
+				CountAdded: 0,
+				Error:      "Invalid Submitted Data"}
+			response.sendResponse(writer)
 			return
 		}
 	}
 
 	//Nominal: Send data to database via messaging system
+	//nsq.Send(Student)
 
-	sendResponse(len(students), "", writer)
+	response := StudentAdded{
+		CountAdded: len(students),
+		Error:      ""}
+	response.sendResponse(writer)
 }
 
-//validRequest validates that the request meets the method and data type formats
+//isValidRequest validates that the request meets the method and data type formats
 //requests should only be of the type POST and be of MIME type application/json
-func validRequest(request *http.Request) error {
+func isValidRequest(request *http.Request) error {
 
 	//verify the request method
 	if request.Method != postMethod {
@@ -81,21 +86,4 @@ func isValidStudent(students integrate.StudentInfo) bool {
 		return false
 	}
 	return true
-}
-
-//sendResponse sends a response back to the user.  If the error string is
-func sendResponse(studentsAdded int, error string, writer http.ResponseWriter) {
-	success := new(StudentAdded)
-	writer.Header().Set(contentType, mimeType)
-
-	if error == "" {
-		success.CountAdded = studentsAdded
-		writer.WriteHeader(http.StatusOK)
-	} else {
-		success.CountAdded = 0
-		writer.WriteHeader(http.StatusInternalServerError)
-	}
-
-	responseBody, _ := json.Marshal(success)
-	writer.Write(responseBody)
 }

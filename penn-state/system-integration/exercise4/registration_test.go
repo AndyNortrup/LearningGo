@@ -54,8 +54,8 @@ var twoStudentJSONBlob = []byte(`[
     "AcadmenicStatus": 1
   }]`)
 
-//invalidRequest is invalid because the first studentID is a negative numbers
-var invalidRequest = []byte(`[
+//inisValidRequest is invalid because the first studentID is a negative numbers
+var inisValidRequest = []byte(`[
     {
       "StudentID": -1,
       "Name": "John Smith",
@@ -117,20 +117,20 @@ func TestValidateRequest(t *testing.T) {
 	request, _ := http.NewRequest(postMethod, "", nil)
 	request.Header.Set(contentType, mimeType)
 
-	if err0 := validRequest(request); err0 != nil {
+	if err0 := isValidRequest(request); err0 != nil {
 		t.Errorf("Failed to validate good request.\n\t%v", err0.Error())
 	}
 
 	//Change the method to be invalid
 	request.Method = getMethod
-	if err1 := validRequest(request); err1 == nil {
+	if err1 := isValidRequest(request); err1 == nil {
 		t.Errorf("Failed to disqualify wrong http.Method value.\n\t%v", err1.Error())
 	}
 
 	//reset method and change content type to be invalid
 	request.Method = postMethod
 	request.Header.Set(contentType, invalidMIME)
-	if err2 := validRequest(request); err2 == nil {
+	if err2 := isValidRequest(request); err2 == nil {
 		t.Errorf("Failed to disqualify wrong mime type data. \n\t%v", err2.Error())
 	}
 }
@@ -147,7 +147,7 @@ func TestService(t *testing.T) {
 	response := sendRequest(t, oneStudentJSONBlob, s.URL)
 	if response.CountAdded != 1 {
 		t.Errorf("Incorrect student count returned. Expected: 1 \t Received: %v",
-			response.CountAdded)
+			response)
 	}
 
 	//Send a request to the server with one student
@@ -155,7 +155,7 @@ func TestService(t *testing.T) {
 	response = sendRequest(t, twoStudentJSONBlob, s.URL)
 	if response.CountAdded != 2 {
 		t.Errorf("Incorrect student count returned. Expected: 2 \t Received: %v",
-			response.CountAdded)
+			response)
 	}
 
 	sendBadGetRequest(t, s.URL)
@@ -206,7 +206,7 @@ func sendEmptyRequest(t *testing.T, url string) {
 }
 
 func sendInvliadRequest(t *testing.T, url string) {
-	response, _ := http.Post(url, mimeType, bytes.NewReader(invalidRequest))
+	response, _ := http.Post(url, mimeType, bytes.NewReader(inisValidRequest))
 	t.Logf("Sent invalid request.  HTTP Status: %v", response.Status)
 	if response.StatusCode != http.StatusInternalServerError {
 		t.Error("Failed to reject request with negative Student ID Number")
